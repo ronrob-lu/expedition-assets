@@ -148,13 +148,13 @@ local function resolve_skin_name(s)
 end
 
 minetest.register_chatcommand("ea_apply_skin", {
-	params = "<adventurer|professor|researcher|1|2|3|default> [player]",
+	params = "<adventurer|professor|researcher|1|2|3|default|reset> [player]",
 	description = S("Wear one of the Expedition character skins"),
 	func = function(name, param)
 		local skin_arg, target = param:match("^%s*(%S+)%s*(%S*)%s*$")
 		local id = resolve_skin_name(skin_arg)
 		if not id then
-			return false, S("Usage: /ea_apply_skin <adventurer|professor|researcher|default> [player]")
+			return false, S("Usage: /ea_apply_skin <adventurer|professor|researcher|default|reset> [player]")
 		end
 		if target == "" then target = name end
 		if target ~= name and not minetest.check_player_privs(name, {ea_builder = true}) then
