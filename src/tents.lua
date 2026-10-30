@@ -23,6 +23,7 @@ minetest.register_node("expedition_assets:tent_barrier", {
 
 
 local function is_boundary(x, y, z)
+	if z == FOOT.z0 and x == 0 and y <= 1 then return false end
 	if x == FOOT.x0 or x == FOOT.x1 then return true end
 	if (z == FOOT.z0 or z == FOOT.z1) and x ~= 0 then return true end
 	if y == FOOT.y1 then return true end
@@ -104,11 +105,9 @@ local function tent_on_destruct(pos)
 	local def = minetest.registered_nodes[node.name]
 	if def and def._has_barriers then
 		each_footprint_pos(pos, node.param2, function(p, x, y, z)
-			if is_boundary(x, y, z) then
-				local bnode = minetest.get_node(p)
-				if bnode.name == "expedition_assets:tent_barrier" then
-					minetest.set_node(p, {name = "air"})
-				end
+			local bnode = minetest.get_node(p)
+			if bnode.name == "expedition_assets:tent_barrier" then
+				minetest.set_node(p, {name = "air"})
 			end
 		end)
 	end
