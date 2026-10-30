@@ -80,7 +80,7 @@ local function register_tent(id, desc, mesh, inv)
 		sunlight_propagates = true,
 		walkable = false, -- walk right in
 		is_ground_content = false,
-		selection_box = {type = "fixed", fixed = {-1.5, -0.5, -1, 1.5, 1.5, 1.5}},
+		selection_box = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}},
 		groups = ea.wood_groups({flammable = 3}),
 		_mcl_hardness = 1, _mcl_blast_resistance = 1,
 		sounds = ea.sound_wood(),

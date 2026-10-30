@@ -167,7 +167,7 @@ function Builder:door(x, y, z, face)
 end
 
 local function spawn_npcs_enabled()
-	return minetest.settings:get_bool("expedition_assets_spawn_npcs_with_buildings", true)
+	return minetest.settings:get_bool("expedition_assets_spawn_npcs_with_buildings", false)
 end
 
 ---------------------------------------------------------------------------
