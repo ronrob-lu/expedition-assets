@@ -81,7 +81,7 @@ local function tent_on_place(itemstack, placer, pointed)
 	minetest.set_node(pos, {name = itemstack:get_name(), param2 = param2})
 
 	local placed_def = minetest.registered_nodes[itemstack:get_name()]
-	if placed_def and placed_def.walkable then
+	if placed_def and placed_def._has_barriers then
 		each_footprint_pos(pos, param2, function(p, x, y, z)
 			if is_boundary(x, y, z) then
 				minetest.set_node(p, {name = "expedition_assets:tent_barrier"})
@@ -101,7 +101,7 @@ end
 local function tent_on_destruct(pos)
 	local node = minetest.get_node(pos)
 	local def = minetest.registered_nodes[node.name]
-	if def and def.walkable then
+	if def and def._has_barriers then
 		each_footprint_pos(pos, node.param2, function(p, x, y, z)
 			if is_boundary(x, y, z) then
 				local bnode = minetest.get_node(p)
@@ -125,7 +125,8 @@ local function register_tent(id, desc, mesh, inv, walkable)
 		paramtype = "light",
 		paramtype2 = "facedir",
 		sunlight_propagates = true,
-		walkable = walkable, -- walk right in
+		walkable = false,
+		_has_barriers = walkable,
 		is_ground_content = false,
 		selection_box = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}},
 		groups = ea.wood_groups({flammable = 3}),
