@@ -67,6 +67,23 @@ local function tent_on_place(itemstack, placer, pointed)
 end
 
 local function register_tent(id, desc, mesh, inv, walkable)
+	local collision_box
+	if walkable then
+		collision_box = {
+			type = "fixed",
+			fixed = {
+				-- left wall
+				{-2.5, -0.5, -1.5, -2.4, 3.5, 2.5},
+				-- right wall
+				{2.4, -0.5, -1.5, 2.5, 3.5, 2.5},
+				-- back wall
+				{-2.5, -0.5, 2.4, 2.5, 3.5, 2.5},
+				-- roof
+				{-2.5, 3.4, -1.5, 2.5, 3.5, 2.5},
+			}
+		}
+	end
+
 	minetest.register_node("expedition_assets:" .. id, {
 		description = desc,
 		_doc_items_longdesc = S("A 5 x 4 block expedition tent."),
@@ -81,6 +98,7 @@ local function register_tent(id, desc, mesh, inv, walkable)
 		walkable = walkable, -- walk right in
 		is_ground_content = false,
 		selection_box = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}},
+		collision_box = collision_box,
 		groups = ea.wood_groups({flammable = 3}),
 		_mcl_hardness = 1, _mcl_blast_resistance = 1,
 		sounds = ea.sound_wood(),
