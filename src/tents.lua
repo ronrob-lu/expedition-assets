@@ -24,6 +24,7 @@ minetest.register_node("expedition_assets:tent_barrier", {
 
 local function is_boundary(x, y, z)
 	if x == FOOT.x0 or x == FOOT.x1 then return true end
+	if z == FOOT.z0 or z == FOOT.z1 then return true end
 	if y == FOOT.y1 then return true end
 	return false
 end
