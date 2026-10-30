@@ -7,6 +7,26 @@ local S = ea.S
 -- Footprint relative to the node the tent is placed in (before rotation).
 -- Width x = -2..2, depth z = -1..2, height y = 0..3  (matches the mesh)
 local FOOT = {x0 = -2, x1 = 2, z0 = -1, z1 = 2, y0 = 0, y1 = 3}
+minetest.register_node("expedition_assets:tent_barrier", {
+	description = "Tent Barrier",
+	drawtype = "airlike",
+	paramtype = "light",
+	sunlight_propagates = true,
+	walkable = true,
+	pointable = false,
+	diggable = false,
+	buildable_to = false,
+	drop = "",
+	groups = {not_in_creative_inventory = 1},
+})
+
+
+
+local function is_boundary(x, y, z)
+	if x == FOOT.x0 or x == FOOT.x1 then return true end
+	if y == FOOT.y1 then return true end
+	return false
+end
 
 local function rotate(x, z, rot)
 	for _ = 1, rot do
@@ -21,7 +41,7 @@ local function each_footprint_pos(pos, param2, fn)
 		for z = FOOT.z0, FOOT.z1 do
 			local rx, rz = rotate(x, z, rot)
 			for y = FOOT.y0, FOOT.y1 do
-				if fn({x = pos.x + rx, y = pos.y + y, z = pos.z + rz}) == false then
+				if fn({x = pos.x + rx, y = pos.y + y, z = pos.z + rz}, x, y, z) == false then
 					return false
 				end
 			end
@@ -59,31 +79,41 @@ local function tent_on_place(itemstack, placer, pointed)
 	end
 
 	minetest.set_node(pos, {name = itemstack:get_name(), param2 = param2})
+
+	local placed_def = minetest.registered_nodes[itemstack:get_name()]
+	if placed_def and placed_def.walkable then
+		each_footprint_pos(pos, param2, function(p, x, y, z)
+			if is_boundary(x, y, z) then
+				minetest.set_node(p, {name = "expedition_assets:tent_barrier"})
+			end
+		end)
+	end
+
 	minetest.sound_play("default_place_node", {pos = pos, gain = 0.6}, true)
+
 	if not ea.is_creative(name) then
 		itemstack:take_item()
 	end
 	return itemstack
 end
 
-local function register_tent(id, desc, mesh, inv, walkable)
-	local collision_box
-	if walkable then
-		collision_box = {
-			type = "fixed",
-			fixed = {
-				-- left wall
-				{-2.5, -0.5, -1.5, -2.4, 3.5, 2.5},
-				-- right wall
-				{2.4, -0.5, -1.5, 2.5, 3.5, 2.5},
-				-- back wall
-				{-2.5, -0.5, 2.4, 2.5, 3.5, 2.5},
-				-- roof
-				{-2.5, 3.4, -1.5, 2.5, 3.5, 2.5},
-			}
-		}
-	end
 
+local function tent_on_destruct(pos)
+	local node = minetest.get_node(pos)
+	local def = minetest.registered_nodes[node.name]
+	if def and def.walkable then
+		each_footprint_pos(pos, node.param2, function(p, x, y, z)
+			if is_boundary(x, y, z) then
+				local bnode = minetest.get_node(p)
+				if bnode.name == "expedition_assets:tent_barrier" then
+					minetest.set_node(p, {name = "air"})
+				end
+			end
+		end)
+	end
+end
+
+local function register_tent(id, desc, mesh, inv, walkable)
 	minetest.register_node("expedition_assets:" .. id, {
 		description = desc,
 		_doc_items_longdesc = S("A 5 x 4 block expedition tent."),
@@ -98,12 +128,12 @@ local function register_tent(id, desc, mesh, inv, walkable)
 		walkable = walkable, -- walk right in
 		is_ground_content = false,
 		selection_box = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}},
-		collision_box = collision_box,
 		groups = ea.wood_groups({flammable = 3}),
 		_mcl_hardness = 1, _mcl_blast_resistance = 1,
 		sounds = ea.sound_wood(),
 		stack_max = 16,
 		on_place = tent_on_place,
+		on_destruct = tent_on_destruct,
 	})
 end
 
