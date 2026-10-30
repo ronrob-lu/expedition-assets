@@ -66,7 +66,7 @@ local function tent_on_place(itemstack, placer, pointed)
 	return itemstack
 end
 
-local function register_tent(id, desc, mesh, inv)
+local function register_tent(id, desc, mesh, inv, walkable)
 	minetest.register_node("expedition_assets:" .. id, {
 		description = desc,
 		_doc_items_longdesc = S("A 5 x 4 block expedition tent."),
@@ -78,7 +78,7 @@ local function register_tent(id, desc, mesh, inv)
 		paramtype = "light",
 		paramtype2 = "facedir",
 		sunlight_propagates = true,
-		walkable = false, -- walk right in
+		walkable = walkable, -- walk right in
 		is_ground_content = false,
 		selection_box = {type = "fixed", fixed = {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5}},
 		groups = ea.wood_groups({flammable = 3}),
@@ -90,9 +90,9 @@ local function register_tent(id, desc, mesh, inv)
 end
 
 register_tent("tent", S("Tent Frame (5x4)"), "expedition_assets_tent.obj",
-	"expedition_assets_tent_inv.png")
+	"expedition_assets_tent_inv.png", false)
 register_tent("tent_canvas", S("Expedition Tent (5x4)"), "expedition_assets_tent_canvas.obj",
-	"expedition_assets_tent_canvas_inv.png")
+	"expedition_assets_tent_canvas_inv.png", true)
 
 -- 7 sticks in an upside-down U
 minetest.register_craft({
