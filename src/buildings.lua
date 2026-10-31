@@ -1,6 +1,7 @@
 -- Section 3: Buildings
 --   /spawn_research_station  - two-storey jungle research outpost (9x9 + annex)
 --   /spawn_park_entry [LINE 1|LINE 2] - giant wooden dino-park entrance gate
+--   /spawn_observation_tower - high-hide observation tower with safety cage and spire
 -- Structures are built right in front of you, facing you.
 local ea = expedition_assets
 local S = ea.S
@@ -53,6 +54,9 @@ local PALETTE = {
 	dirt            = {"default:dirt", "mcl_core:dirt"},
 	furnace         = {"default:furnace", "mcl_furnaces:furnace"},
 	metal           = {"default:steelblock", "mcl_core:ironblock"},
+	steel_bars      = {"default:steel_bars", "xpanes:bar_flat", "mcl_panes:iron_bars"},
+	light           = {"default:meselamp", "mcl_core:redstone_lamp", "default:torch"},
+	slab_wood       = {"stairs:slab_wood", "mcl_stairs:slab_wood"},
 	bookshelf       = {"default:bookshelf", "mcl_books:bookshelf"},
 }
 -- If a material is missing, use this one instead
@@ -60,6 +64,7 @@ local FALLBACK = {
 	dark_bricks = "cobble", slab_cobble = "cobble", slab_dark_wood = "dark_planks",
 	stair_wood = "planks", dark_planks = "planks", dark_log = "dark_planks",
 	path = "dirt", metal = "cobble", bookshelf = "planks", fence = "planks",
+	steel_bars = "fence", light = "torch_wall", slab_wood = "planks",
 }
 local resolved = {}
 
@@ -456,5 +461,213 @@ minetest.register_chatcommand("spawn_park_entry", {
 			l1, l2 = (l1 or ""):gsub("^%s+", ""):gsub("%s+$", ""), (l2 or ""):gsub("^%s+", ""):gsub("%s+$", "")
 		end
 		return start_build(name, GATE, S("Park Entry"), {line1 = l1, line2 = l2})
+	end,
+})
+
+---------------------------------------------------------------------------
+-- Observation Tower  (JP High Hide Tower, see reference_images/observation-tower.png)
+---------------------------------------------------------------------------
+-- Tapered 4-legged structural steel truss tower with concrete footings,
+-- central safety ladder cage, mid-level staging catwalk (Y=12..14),
+-- upper observation cabin with 360-degree glass perimeter (Y=15..18),
+-- hipped overhanging roof canopy, communications mast and beacon light (Y=19..24).
+local TOWER = {
+	anchor_x = 0, dist = 10,
+	min = {x = -8, y = -12, z = -8}, max = {x = 8, y = 26, z = 8},
+}
+
+function TOWER.build(b)
+	-- Clear build volume
+	b:fill(-8, 8, 1, 26, -8, 8, "air")
+
+	-- 1. Foundation & Concrete Footings (Y=0)
+	-- 4 corner footings: 2x2 pads at (±5..±6, ±5..±6)
+	local footing_corners = {
+		{-6, -5, -6, -5},
+		{5, 6, -6, -5},
+		{-6, -5, 5, 6},
+		{5, 6, 5, 6},
+	}
+	for _, pad in ipairs(footing_corners) do
+		for x = pad[1], pad[2] do
+			for z = pad[3], pad[4] do
+				b:support(x, z, -1)
+				b:set(x, 0, z, "dark_bricks")
+			end
+		end
+	end
+
+	-- 2. Tapered 4-Legged Truss Columns (Y=1..11)
+	-- Legs taper inward from (±5, ±5) at base to (±3, ±3) at staging level:
+	-- Y=1..4: ±5
+	-- Y=5..8: ±4
+	-- Y=9..11: ±3
+	local leg_coords = {
+		{1, 4, 5},
+		{5, 8, 4},
+		{9, 11, 3},
+	}
+	for _, tier in ipairs(leg_coords) do
+		local y_start, y_end, d = tier[1], tier[2], tier[3]
+		for y = y_start, y_end do
+			b:set(-d, y, -d, "metal")
+			b:set(d, y, -d, "metal")
+			b:set(-d, y, d, "metal")
+			b:set(d, y, d, "metal")
+		end
+	end
+
+	-- 3. Perimeter Horizontal Cross-Bracing Rings
+	-- Ring at Y=4 connecting legs at ±5
+	for c = -5, 5 do
+		b:set(c, 4, -5, "metal")
+		b:set(c, 4, 5, "metal")
+		b:set(-5, 4, c, "metal")
+		b:set(5, 4, c, "metal")
+	end
+	-- Ring at Y=8 connecting legs at ±4
+	for c = -4, 4 do
+		b:set(c, 8, -4, "metal")
+		b:set(c, 8, 4, "metal")
+		b:set(-4, 8, c, "metal")
+		b:set(4, 8, c, "metal")
+	end
+	-- Ring at Y=12 connecting legs at ±3
+	for c = -3, 3 do
+		b:set(c, 12, -3, "metal")
+		b:set(c, 12, 3, "metal")
+		b:set(-3, 12, c, "metal")
+		b:set(3, 12, c, "metal")
+	end
+
+	-- 4. Central Safety Cage & Vertical Ladder (Y=0..18)
+	-- Ladder climbs up column (0, y, 0) facing +Z (mounted on north/back wall)
+	-- Protective steel bars wrap the ladder shaft at (1, 0), (-1, 0), (0, 1)
+	for y = 0, 18 do
+		-- Ladder node at (0, y, 0) attached to wall at (0, y, -1) or free ladder
+		-- minetest ladder wallmounted points to supporting node behind it
+		if y >= 1 and y <= 18 then
+			b:set(0, y, 0, "ladder", {wall = {x = 0, z = -1}})
+		end
+		-- Supporting rung spine behind the ladder
+		if y >= 0 and y <= 18 then
+			b:set(0, y, -1, "metal")
+		end
+		-- Cage enclosure on sides for tower climber safety
+		if (y >= 1 and y <= 11) or (y >= 13 and y <= 14) or (y >= 16 and y <= 17) then
+			b:set(-1, y, 0, "steel_bars")
+			b:set(1, y, 0, "steel_bars")
+			b:set(0, y, 1, "steel_bars")
+		end
+	end
+
+	-- 5. Mid-Level Staging Catwalk Platform (Y=12..14)
+	-- 7x7 plank deck at Y=12 (-3..3, -3..3)
+	b:fill(-3, 3, 12, 12, -3, 3, "planks")
+	-- Ladder access opening at (0, 12, 0)
+	b:set(0, 12, 0, "ladder", {wall = {x = 0, z = -1}})
+
+	-- Perimeter safety railings at Y=13..14
+	for c = -3, 3 do
+		for y = 13, 14 do
+			b:set(c, y, -3, "steel_bars")
+			b:set(c, y, 3, "steel_bars")
+			b:set(-3, y, c, "steel_bars")
+			b:set(3, y, c, "steel_bars")
+		end
+	end
+	-- Catwalk corner reinforcement posts
+	for y = 13, 14 do
+		b:set(-3, y, -3, "metal")
+		b:set(3, y, -3, "metal")
+		b:set(-3, y, 3, "metal")
+		b:set(3, y, 3, "metal")
+	end
+
+	-- 6. Upper Observation Cabin (Y=15..18)
+	-- Floor at Y=15: 7x7 timber deck
+	b:fill(-3, 3, 15, 15, -3, 3, "planks")
+	b:set(0, 15, 0, "ladder", {wall = {x = 0, z = -1}}) -- hatch opening
+
+	-- Cabin structural corner posts
+	for y = 15, 18 do
+		b:set(-3, y, -3, "metal")
+		b:set(3, y, -3, "metal")
+		b:set(-3, y, 3, "metal")
+		b:set(3, y, 3, "metal")
+	end
+
+	-- Full 360-degree observation glass perimeter (Y=16..18)
+	for c = -2, 2 do
+		for y = 16, 18 do
+			b:set(c, y, -3, "glass")
+			b:set(c, y, 3, "glass")
+			b:set(-3, y, c, "glass")
+			b:set(3, y, c, "glass")
+		end
+	end
+
+	-- Cabin Interior Equipment & Furniture (Y=16)
+	-- Weather/radar consoles and field research equipment
+	b:set(-2, 16, -2, "furnace", {face = {x = 0, z = 1}})
+	b:set(-1, 16, -2, "bookshelf")
+	b:set(1, 16, -2, "metal")
+	b:set(2, 16, -2, "furnace", {face = {x = 0, z = 1}})
+	b:set(-2, 16, 1, "bookshelf")
+	b:set(-2, 16, 2, "bookshelf")
+	-- Pre-stocked Expedition Supply Crate
+	ea.place_box(b:pos(2, 16, 2), b:facedir({x = 0, z = -1}))
+
+	-- Cabin ceiling light
+	b:set(0, 18, 0, "light")
+
+	-- 7. Overhanging Canopy Roof & Communications Spire (Y=19..24)
+	-- Main roof ceiling slab (7x7) at Y=19
+	b:fill(-3, 3, 19, 19, -3, 3, "metal")
+	-- Overhanging eaves canopy: 9x9 perimeter at Y=19
+	for c = -4, 4 do
+		b:set(c, 19, -4, "slab_wood")
+		b:set(c, 19, 4, "slab_wood")
+		b:set(-4, 19, c, "slab_wood")
+		b:set(4, 19, c, "slab_wood")
+	end
+	-- Upper roof hipped tier: 7x7 at Y=20
+	b:fill(-3, 3, 20, 20, -3, 3, "slab_wood")
+	-- Roof peak cap: 3x3 at Y=21
+	b:fill(-1, 1, 21, 21, -1, 1, "metal")
+
+	-- Communications antenna spire (Y=21..23)
+	b:set(0, 22, 0, "fence")
+	b:set(0, 23, 0, "fence")
+
+	-- High-intensity observation beacon / aviation warning light at apex (Y=24)
+	b:set(0, 24, 0, "light")
+
+	-- 8. Ground Access Path & Direction Signpost
+	for z = -1, -7, -1 do
+		b:support(0, z, -1)
+		b:set(0, 0, z, "path")
+		b:fill(0, 0, 1, 2, z, z, "air")
+	end
+	b:support(2, -3, 0)
+	local sp = b:pos(2, 1, -3)
+	minetest.set_node(sp, {name = "expedition_assets:signpost_single", param2 = b:facedir({x = 0, z = 1})})
+	ea.set_sign_text(sp, S("Observation Tower"))
+
+	-- 9. Station Expedition Personnel (if enabled)
+	if spawn_npcs_enabled() then
+		local yaw_cabin = b:yaw({x = 0, z = -1})
+		local yaw_ground = b:yaw({x = 0, z = -1})
+		ea.spawn_character("researcher", b:pos(1, 16, 1), yaw_cabin)
+		ea.spawn_character("adventurer", b:pos(0, 13, 2), yaw_cabin)
+		ea.spawn_character("professor", b:pos(1, 1, -4), yaw_ground)
+	end
+end
+
+minetest.register_chatcommand("spawn_observation_tower", {
+	description = S("Build the High Hide Observation Tower in front of you"),
+	privs = {ea_builder = true},
+	func = function(name)
+		return start_build(name, TOWER, S("Observation Tower"))
 	end,
 })

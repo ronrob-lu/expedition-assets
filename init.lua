@@ -4,7 +4,7 @@
 
 	Section 1 - models     : expedition box, tents, tin tools, signposts
 	Section 2 - characters : adventurer, professor, researcher (skins + NPCs)
-	Section 3 - buildings  : /spawn_research_station, /spawn_park_entry
+	Section 3 - buildings  : /spawn_research_station, /spawn_park_entry, /spawn_observation_tower
 ]]
 
 expedition_assets = {}

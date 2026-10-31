@@ -23,6 +23,7 @@ Whether you're exploring lush prehistoric jungles, building a paleontological di
 - 🏛️ **Epic Architectural Landmarks**:
   - `/spawn_research_station`: 2-storey cobblestone & wood outpost with rooftop balcony and laboratory generator machinery.
   - `/spawn_park_entry`: Grand wooden archway with colossal 3D wooden block lettering (`PARQUE DE DINOSAURIOS` or any custom text!).
+  - `/spawn_observation_tower`: Colossal 25-block tall structural steel high-hide observation tower with staging catwalk, safety ladder cage, full 360° glass cabin, hipped canopy roof, and comms spire beacon.
 
 ---
 
@@ -180,6 +181,18 @@ Based on `entry-and-three-characters.png` and `park-entry.jpg`:
   - Default: `/spawn_park_entry` creates `PARQUE DE DINOSAURIOS`.
   - Custom: `/spawn_park_entry JURASSIC|RESERVE` or `/spawn_park_entry EXPEDITION|OUTPOST`.
 
+### 🗼 3. High Hide Observation Tower (`/spawn_observation_tower`)
+Based on `reference_images/observation-tower.png`:
+- **Dimensions**: 15×15 ground footprint, 25 blocks tall (Y=0 to 24).
+- **Architecture**: Heavy reinforced stone-brick footing pads, 4 tapered structural steel truss legs connected by horizontal perimeter bracing rings at Y=4, Y=8, and Y=12.
+- **Access & Levels**:
+  - Central vertical access ladder encased in an iron safety cage running from the ground to the cabin.
+  - Mid-level staging catwalk (7×7) at Y=12 with steel perimeter railings.
+  - Enclosed observation cabin (7×7) at Y=15 with 360° reinforced glass panorama, radar & furnace consoles, reference library, illumination, and an **Expedition Supply Box**.
+  - Tiered hipped wooden canopy roof with overhanging eaves (Y=19..20).
+  - Rooftop communications mast and high-visibility apex beacon light (Y=21..24).
+  - Ground pathway with dedicated direction signpost (`Observation Tower`).
+
 ---
 
 ## ⌨️ Commands & Privileges
@@ -190,6 +203,7 @@ Based on `entry-and-three-characters.png` and `park-entry.jpg`:
 | `/ea_spawn_npc <name\|all>` | `ea_builder` | Spawns peaceful NPCs in front of caller. |
 | `/spawn_research_station` | `ea_builder` | Constructs the 2-storey outpost facing player. |
 | `/spawn_park_entry [L1\|L2]` | `ea_builder` | Constructs the giant archway with letter blocks. |
+| `/spawn_observation_tower` | `ea_builder` | Constructs the 25-block tall high-hide observation tower facing player. |
 
 ---
 
